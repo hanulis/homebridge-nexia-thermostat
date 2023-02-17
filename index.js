@@ -21,7 +21,7 @@ function NexiaThermostat(log, config, api) {
     this.model = config.model;
     this.serialNumber = config.serialNumber;
 	this.pollInterval = config.pollInterval || 60;
-	
+
     this.service = new Service.Thermostat(this.name);
     this.humidityService = new Service.HumiditySensor(this.name);
 
@@ -240,11 +240,6 @@ NexiaThermostat.prototype = {
 
         if(data!==false) {
 
-            // console.log(data.zones[0]);
-
-            // const systemStatus = data.system_status;
-            // this.log("System Status : %s",systemStatus);
-
             const convertedScale = this.getConvertedScale(data);
 
             const mappedMode=this.getMappedMode(data);
@@ -416,25 +411,6 @@ NexiaThermostat.prototype = {
         } else {
             callback(null);
         }        
-        // request.get({
-        //     url: this.apiroute + "houses/" + this.houseId,
-        //     headers: {
-        //         "Content-Type": "application/json",
-        //         "X-MobileId": this.xMobileId,
-        //         "X-ApiKey": this.xApiKey
-        //     }
-        // }, function(err, response, body) {
-        //     if (!err && response.statusCode == 200) {
-        //         // this.log("response success");
-        //         var data = JSON.parse(body);
-        //         var currentCool = data.result._links.child[0].data.items[this.thermostatIndex].zones[0].setpoints.cool;
-        //         var currentCoolC = (currentCool - 32.0) / 1.8;
-        //         callback(null, currentCoolC);
-        //     } else {
-        //         this.log("Error getCoolingThresholdTemperature: %s", err);
-        //         callback(err);
-        //     }
-        // }.bind(this));
     },
     setCoolingThresholdTemperature: async function(value, callback) {
         this.log("setCoolingThresholdTemperature to " + value);
@@ -466,26 +442,6 @@ NexiaThermostat.prototype = {
         } else {
             callback(null);
         }
-
-        // request.get({
-        //     url: this.apiroute + "houses/" + this.houseId,
-        //     headers: {
-        //         "Content-Type": "application/json",
-        //         "X-MobileId": this.xMobileId,
-        //         "X-ApiKey": this.xApiKey
-        //     }
-        // }, function(err, response, body) {
-        //     if (!err && response.statusCode == 200) {
-        //         // this.log("response success");
-        //         var data = JSON.parse(body);
-        //         var currentHeat = data.result._links.child[0].data.items[this.thermostatIndex].zones[0].setpoints.heat;
-        //         var currentHeatC = (currentHeat - 32.0) / 1.8;
-        //         callback(null, currentHeatC);
-        //     } else {
-        //         this.log("Error getHeatingThresholdTemperature: %s", err);
-        //         callback(err);
-        //     }
-        // }.bind(this));
     },
     setHeatingThresholdTemperature: async function(value, callback) {
         this.log("setHeatingThresholdTemperature to " + value);
