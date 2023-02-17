@@ -20,7 +20,10 @@ function NexiaThermostat(log, config, api) {
     this.manufacturer = config.manufacturer;
     this.model = config.model;
     this.serialNumber = config.serialNumber;
+	this.pollInterval = config.pollInterval || 60;
+	
     this.service = new Service.Thermostat(this.name);
+    this.humidityService = new Service.HumiditySensor(this.name);
 
     this.coolingThreshold=0;
 
@@ -524,7 +527,39 @@ NexiaThermostat.prototype = {
             callback(null);
         }        
     },
+    getStateHumidity: async function(callback) {
+        const data=await this.getDefaultInfo();
 
+        if(data!==false) {
+            const humidify = data.indoor_humidity;
+
+            callback(null, humidify);
+        } else {
+            callback(null);
+        }
+    },
+
+    _getStatus: async function(callback) {
+        const data=await this.getDefaultInfo();
+
+        if(data!==false) {
+            const humidity = data.indoor_humidity;
+            const f=data.zones[0].temperature;
+
+            const convertedScale = this.getConvertedScale(data);
+            
+            let c=f;
+            if(convertedScale === Characteristic.TemperatureDisplayUnits.FAHRENHEIT) {
+                c = this.ftoc(c);
+            }
+            this.service.setCharacteristic(Characteristic.CurrentTemperature, c);
+            this.humidityService.setCharacteristic(Characteristic.CurrentRelativeHumidity, humidity);
+
+            callback();
+        } else {
+            callback();
+        }        
+    },
     getName: function(callback) {
         this.log("getName :", this.name);
         var error = null;
@@ -532,6 +567,8 @@ NexiaThermostat.prototype = {
     },
 
     getServices: function() {
+
+		let services=[];
 
         // you can OPTIONALLY create an information service if you wish to override
         // the default values for things like serial number, model, etc.
@@ -584,6 +621,23 @@ NexiaThermostat.prototype = {
         this.service
             .getCharacteristic(Characteristic.Name)
             .on('get', this.getName.bind(this));
-        return [informationService, this.service];
+
+
+        // huminity
+
+        this.humidityService
+            .getCharacteristic(Characteristic.CurrentRelativeHumidity)
+            .setProps({minValue: 0, maxValue: 100})
+            .on('get', this.getStateHumidity.bind(this));        
+
+        setInterval(function () {
+            this._getStatus(function () {})
+        }.bind(this), this.pollInterval * 1000);
+
+        services.push(informationService);
+        services.push(this.service);
+        services.push(this.humidityService);
+
+        return services;
     }
 };
