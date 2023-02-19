@@ -181,12 +181,12 @@ NexiaThermostat.prototype = {
                     this.log(body2);
                     if(body2 && body2.success===true) {
                         if(body2.result.current_zone_mode==='COOL') {
-                            this.service.getCharacteristic(Characteristic.TargetTemperature).updateValue(this.ftoc(body2.result.cooling_setpoint));
+                            this.service.updateCharacteristic(Characteristic.TargetTemperature,this.ftoc(body2.result.cooling_setpoint));
                         } else if(body2.result.current_zone_mode==='HEAT') {
-                            this.service.getCharacteristic(Characteristic.TargetTemperature).updateValue(this.ftoc(body2.result.heating_setpoint));
+                            this.service.updateCharacteristic(Characteristic.TargetTemperature,this.ftoc(body2.result.heating_setpoint));
                         } else if(body2.result.current_zone_mode==='AUTO') {
-                            this.service.getCharacteristic(Characteristic.CoolingThresholdTemperature).updateValue(this.ftoc(body2.result.cooling_setpoint));
-                            this.service.getCharacteristic(Characteristic.HeatingThresholdTemperature).updateValue(this.ftoc(body2.result.heating_setpoint));
+                            this.service.updateCharacteristic(Characteristic.CoolingThresholdTemperature,this.ftoc(body2.result.cooling_setpoint));
+                            this.service.updateCharacteristic(Characteristic.HeatingThresholdTemperature,this.ftoc(body2.result.heating_setpoint));
                         }
                     }
 
@@ -508,8 +508,8 @@ NexiaThermostat.prototype = {
             if(convertedScale === Characteristic.TemperatureDisplayUnits.FAHRENHEIT) {
                 c = this.ftoc(c);
             }
-            this.service.setCharacteristic(Characteristic.CurrentTemperature, c);
-            this.humidityService.setCharacteristic(Characteristic.CurrentRelativeHumidity, humidity);
+            this.service.updateCharacteristic(Characteristic.CurrentTemperature, c);
+            this.humidityService.updateCharacteristic(Characteristic.CurrentRelativeHumidity, humidity);
 
             callback();
         } else {
