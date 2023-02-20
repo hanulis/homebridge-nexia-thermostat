@@ -410,7 +410,7 @@ NexiaThermostat.prototype = {
 
                 callback(null, c);
             } else {
-                callback(null, 26.0);
+                callback(null, 30.0);
             }
         } else {
             callback(null);
