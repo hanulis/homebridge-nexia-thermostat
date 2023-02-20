@@ -224,7 +224,7 @@ NexiaThermostat.prototype = {
         return parseInt(Math.round(c * 1.8 + 32.0));
     },
     ftoc: function(f) {
-        return parseFloat(((f - 32.0) / 1.8).toFixed(1));
+        return ((f - 32.0) / 1.8).toFixed(1);
     },
     getConvertedScale: function(data) {
         const rawThermostatFeature = data.zones[0].features.find((e) => e.name == "thermostat");
@@ -400,14 +400,18 @@ NexiaThermostat.prototype = {
         if(data!==false) {
             const f=data.zones[0].setpoints.cool;
 
-            const convertedScale = this.getConvertedScale(data);
-            
-            let c=f;
-            if(convertedScale === Characteristic.TemperatureDisplayUnits.FAHRENHEIT) {
-                c = this.ftoc(c);
-            }
+            if(f) {
+                const convertedScale = this.getConvertedScale(data);
+                
+                let c=f;
+                if(convertedScale === Characteristic.TemperatureDisplayUnits.FAHRENHEIT) {
+                    c = this.ftoc(c);
+                }
 
-            callback(null, c);
+                callback(null, c);
+            } else {
+                callback(null);
+            }
         } else {
             callback(null);
         }        
