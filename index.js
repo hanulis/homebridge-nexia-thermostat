@@ -408,6 +408,8 @@ NexiaThermostat.prototype = {
                     c = this.ftoc(c);
                 }
 
+				this.log("Cooling Threshold Temperature : %s", c);
+				
                 callback(null, c);
             } else {
                 callback(null, 30.0);
@@ -441,7 +443,7 @@ NexiaThermostat.prototype = {
             if(convertedScale === Characteristic.TemperatureDisplayUnits.FAHRENHEIT) {
                 c = this.ftoc(c);
             }
-
+			this.log("Heating Threshold Temperature : %s", c);
             callback(null, c);
         } else {
             callback(null);
