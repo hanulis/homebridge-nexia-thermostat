@@ -134,7 +134,7 @@ NexiaThermostat.prototype = {
         if(data!==false) {
             const characteristic=this.parseMode(data.zones[0].current_zone_mode);
 
-            this.log("getTargetHeatingCoolingState: %s, %s", characteristic, data.zone[0].current_zone_mode);
+            this.log("getTargetHeatingCoolingState: %s, %s", characteristic, data.zones[0].current_zone_mode);
 
             callback(null, characteristic);            
         } else {
