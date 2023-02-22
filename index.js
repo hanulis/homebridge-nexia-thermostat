@@ -114,37 +114,61 @@ NexiaThermostat.prototype = {
             callback(null);
         }
     },
-    getTargetHeatingCoolingState: function(callback) {
+    parseMode:function(rawState) {
+        var characteristic = Characteristic.TargetHeatingCoolingState.OFF;
+        if (rawState === "COOL") {
+            characteristic = Characteristic.TargetHeatingCoolingState.COOL;
+        } else if (rawState === "HEAT") {
+            characteristic = Characteristic.TargetHeatingCoolingState.HEAT;
+        } else if (rawState === "AUTO") {
+            characteristic = Characteristic.TargetHeatingCoolingState.AUTO;
+        }        
+
+        return characteristic;
+    },
+    getTargetHeatingCoolingState: async function(callback) {
         this.log("getTargetHeatingCoolingState");
-        request.get({
-            url: this.apiroute + "houses/" + this.houseId,
-            headers: {
-                "Content-Type": "application/json",
-                "X-MobileId": this.xMobileId,
-                "X-ApiKey": this.xApiKey
-            }
-        }, function(err, response, body) {
-            if (!err && response.statusCode == 200) {
-                // this.log("response success");
-                var data = JSON.parse(body);
-                var rawState = data.result._links.child[0].data.items[this.thermostatIndex].zones[0].current_zone_mode;
 
-                var characteristic = Characteristic.TargetHeatingCoolingState.OFF;
-                if (rawState === "COOL") {
-                    characteristic = Characteristic.TargetHeatingCoolingState.COOL;
-                } else if (rawState === "HEAT") {
-                    characteristic = Characteristic.TargetHeatingCoolingState.HEAT;
-                } else if (rawState === "AUTO") {
-                    characteristic = Characteristic.TargetHeatingCoolingState.AUTO;
-                }
+        const data=await this.getDefaultInfo();
 
-                this.log("getTargetHeatingCoolingState: %s, %s", characteristic, rawState);
-                callback(null, characteristic);
-            } else {
-                this.log("Error getting TargetHeatingCoolingState: %s", err);
-                callback(err);
-            }
-        }.bind(this));
+        if(data!==false) {
+            const characteristic=parseMode(data.zone[0].current_zone_mode);
+
+            this.log("getTargetHeatingCoolingState: %s, %s", characteristic, data.zone[0].current_zone_mode);
+
+            callback(null, characteristic);            
+        } else {
+            callback(null);
+        }
+        // request.get({
+        //     url: this.apiroute + "houses/" + this.houseId,
+        //     headers: {
+        //         "Content-Type": "application/json",
+        //         "X-MobileId": this.xMobileId,
+        //         "X-ApiKey": this.xApiKey
+        //     }
+        // }, function(err, response, body) {
+        //     if (!err && response.statusCode == 200) {
+        //         // this.log("response success");
+        //         var data = JSON.parse(body);
+        //         var rawState = data.result._links.child[0].data.items[this.thermostatIndex].zones[0].current_zone_mode;
+
+        //         var characteristic = Characteristic.TargetHeatingCoolingState.OFF;
+        //         if (rawState === "COOL") {
+        //             characteristic = Characteristic.TargetHeatingCoolingState.COOL;
+        //         } else if (rawState === "HEAT") {
+        //             characteristic = Characteristic.TargetHeatingCoolingState.HEAT;
+        //         } else if (rawState === "AUTO") {
+        //             characteristic = Characteristic.TargetHeatingCoolingState.AUTO;
+        //         }
+
+        //         this.log("getTargetHeatingCoolingState: %s, %s", characteristic, rawState);
+        //         callback(null, characteristic);
+        //     } else {
+        //         this.log("Error getting TargetHeatingCoolingState: %s", err);
+        //         callback(err);
+        //     }
+        // }.bind(this));
     },
     setTargetHeatingCoolingState: function(value, callback) {
 
@@ -441,18 +465,24 @@ NexiaThermostat.prototype = {
         const data=await this.getDefaultInfo();
 
         if(data!==false) {
+            
             const f=data.zones[0].setpoints.heat;
 
-            const convertedScale = this.getConvertedScale(data);
-            
-            let c=f;
-            if(convertedScale === Characteristic.TemperatureDisplayUnits.FAHRENHEIT) {
-                c = this.ftoc(c);
+            if(f) {
+
+                const convertedScale = this.getConvertedScale(data);
+                
+                let c=f;
+                if(convertedScale === Characteristic.TemperatureDisplayUnits.FAHRENHEIT) {
+                    c = this.ftoc(c);
+                }
+                this.log("Heating Threshold Temperature : %s", c);
+                // callback(null, c);
+                callback(null, c);
+                this.service.updateCharacteristic(Characteristic.HeatingThresholdTemperature, c);
+            } else {
+                callback(null, 24);
             }
-			this.log("Heating Threshold Temperature : %s", c);
-            // callback(null, c);
-            callback(null, c);
-            this.service.updateCharacteristic(Characteristic.HeatingThresholdTemperature, c);
         } else {
             callback(null);
         }
