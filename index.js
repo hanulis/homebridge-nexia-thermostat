@@ -437,16 +437,16 @@ NexiaThermostat.prototype = {
 				
                 // callback(null, c);
                 callback(null, c);
-                this.service.updateCharacteristic(Characteristic.HeatingThresholdTemperature, c);
+                this.service.updateCharacteristic(Characteristic.CoolingThresholdTemperature, c);
     
             } else {
                 // callback(null, 30.0);
                 callback(null, 30.0);
-                this.service.updateCharacteristic(Characteristic.HeatingThresholdTemperature, 30.0);
+                this.service.updateCharacteristic(Characteristic.CoolingThresholdTemperature, 30.0);
     
             }
         } else {
-            callback(null);
+            callback(null,30.0);
         }        
     },
     setCoolingThresholdTemperature: async function(value, callback) {
@@ -486,7 +486,7 @@ NexiaThermostat.prototype = {
                 callback(null, 24);
             }
         } else {
-            callback(null);
+            callback(null, 24);
         }
     },
     setHeatingThresholdTemperature: async function(value, callback) {
