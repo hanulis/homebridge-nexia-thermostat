@@ -423,8 +423,9 @@ NexiaThermostat.prototype = {
 
         if(data!==false) {
             const f=data.zones[0].setpoints.cool;
+            const characteristic=this.parseMode(data.zones[0].current_zone_mode);
 
-            if(f) {
+            if(f && characteristic==Characteristic.TargetHeatingCoolingState.AUTO) {
                 const convertedScale = this.getConvertedScale(data);
                 
                 let c=f;
@@ -468,7 +469,7 @@ NexiaThermostat.prototype = {
             
             const f=data.zones[0].setpoints.heat;
 
-            if(f) {
+            if(f && characteristic==Characteristic.TargetHeatingCoolingState.AUTO) {
 
                 const convertedScale = this.getConvertedScale(data);
                 
