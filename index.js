@@ -410,9 +410,15 @@ NexiaThermostat.prototype = {
 
 				this.log("Cooling Threshold Temperature : %s", c);
 				
-                callback(null, c);
+                // callback(null, c);
+                callback(null);
+                this.service.updateCharacteristic(Characteristic.HeatingThresholdTemperature, c);
+    
             } else {
-                callback(null, 30.0);
+                // callback(null, 30.0);
+                callback(null);
+                this.service.updateCharacteristic(Characteristic.HeatingThresholdTemperature, 30.0);
+    
             }
         } else {
             callback(null);
@@ -444,7 +450,9 @@ NexiaThermostat.prototype = {
                 c = this.ftoc(c);
             }
 			this.log("Heating Threshold Temperature : %s", c);
-            callback(null, c);
+            // callback(null, c);
+            callback(null);
+            this.service.updateCharacteristic(Characteristic.HeatingThresholdTemperature, c);
         } else {
             callback(null);
         }
