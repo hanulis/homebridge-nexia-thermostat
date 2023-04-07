@@ -555,8 +555,12 @@ NexiaThermostat.prototype = {
 
         const setFanUrl=zoneModeUrl.replace('zone_mode', 'fan_mode');
 
+        this.log("set fan status : "+value);
         this.log("set fan url : %s", setFanUrl);
 
+        const payload={
+            value:(value ? "on" : "auto")
+        };
         request.post({
             url:setFanUrl,
             headers: {
@@ -564,9 +568,7 @@ NexiaThermostat.prototype = {
                 "X-MobileId": this.xMobileId,
                 "X-ApiKey": this.xApiKey
             },
-            json:{
-                value:(value ? "on" : "auto")
-            }
+            json:payload
         }, function(err2, res2, body2) {
             this.log("+++ setFanStatus");
             this.log(payload);
