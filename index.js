@@ -535,7 +535,16 @@ NexiaThermostat.prototype = {
 
         const data=await this.getDefaultInfo();
 
-        console.log(data.zones[0].features);
+        // console.log(data.zones[0].features);
+
+        const rawThermostatFeature = data.zones[0].features.find((e) => e.name == "thermostat");
+        const rawThermostatMode = data.zones[0].features.find((e) => e.name == "thermostat_mode");
+        const rawThermostatRunMode = data.zones[0].features.find((e) => e.name == "thermostat_run_mode");
+
+        console.log(rawThermostatFeature);
+        console.log(rawThermostatMode);
+        console.log(rawThermostatRunMode);
+
 
         if(data!==false) {
             if(data.system_status==='Fan Running') {
