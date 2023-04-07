@@ -535,10 +535,15 @@ NexiaThermostat.prototype = {
 
         const data=await this.getDefaultInfo();
 
-        console.log(data);
+        console.log(data.zones[0].features);
 
         if(data!==false) {
-            callback(null);
+            if(data.system_status==='Fan Running') {
+                callback(null, true);
+            } else {
+                callback(null, false);
+            }
+            
         } else {
             callback(null);
         }
