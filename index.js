@@ -531,20 +531,8 @@ NexiaThermostat.prototype = {
         }        
     },
     getFanStatus: async function(callback) {
-        console.log("call getFanStatus");
 
         const data=await this.getDefaultInfo();
-
-        // console.log(data.zones[0].features);
-
-        const rawThermostatFeature = data.zones[0].features.find((e) => e.name == "thermostat");
-        const rawThermostatMode = data.zones[0].features.find((e) => e.name == "thermostat_mode");
-        const rawThermostatRunMode = data.zones[0].features.find((e) => e.name == "thermostat_run_mode");
-
-        console.log(rawThermostatFeature);
-        console.log(rawThermostatMode);
-        console.log(rawThermostatRunMode);
-
 
         if(data!==false) {
             if(data.system_status==='Fan Running') {
@@ -556,6 +544,36 @@ NexiaThermostat.prototype = {
         } else {
             callback(null);
         }
+
+    },
+    setFanStatus: async function(value, callback) {
+
+        const data=await this.getDefaultInfo();
+
+        const rawThermostatMode = data.zones[0].features.find((e) => e.name == "thermostat_mode");
+        const zoneModeUrl = rawThermostatMode.actions.update_thermostat_mode.href;
+
+        const setFanUrl=zoneModeUrl.replace('zone_mode', 'fan_mode');
+
+        this.log("set fan url : %s", setFanUrl);
+
+        request.post({
+            url:setFanUrl,
+            headers: {
+                "Content-Type": "application/json",
+                "X-MobileId": this.xMobileId,
+                "X-ApiKey": this.xApiKey
+            },
+            json:{
+                value:(value ? "on" : "auto")
+            }
+        }, function(err2, res2, body2) {
+            this.log("+++ setFanStatus");
+            this.log(payload);
+            this.log(body2);
+            
+            callback(null);
+        }.bind(this));          
 
     },
     getStateHumidity: async function(callback) {
@@ -578,6 +596,8 @@ NexiaThermostat.prototype = {
             const f=data.zones[0].temperature;
 
             const convertedScale = this.getConvertedScale(data);
+
+            const fan=(data.system_status==='Fan Running' ? true : false);
             
             let c=f;
             if(convertedScale === Characteristic.TemperatureDisplayUnits.FAHRENHEIT) {
@@ -585,6 +605,7 @@ NexiaThermostat.prototype = {
             }
             this.service.updateCharacteristic(Characteristic.CurrentTemperature, c);
             this.humidityService.updateCharacteristic(Characteristic.CurrentRelativeHumidity, humidity);
+            this.fanService.updateCharacteristic(Characteristic.On, fan);
 
             callback();
         } else {
@@ -656,7 +677,8 @@ NexiaThermostat.prototype = {
         // fan
         this.fanService
             .getCharacteristic(Characteristic.On)
-            .on('get', this.getFanStatus.bind(this));
+            .on('get', this.getFanStatus.bind(this))
+            .on('set', this.setFanStatus.bind(this));
 
 
         // huminity
