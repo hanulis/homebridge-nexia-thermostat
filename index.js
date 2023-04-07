@@ -20,19 +20,20 @@ function NexiaThermostat(log, config, api) {
     this.manufacturer = config.manufacturer;
     this.model = config.model;
     this.serialNumber = config.serialNumber;
-	this.pollInterval = config.pollInterval || 60;
+    this.pollInterval = config.pollInterval || 60;
 
     this.service = new Service.Thermostat(this.name);
+    this.fanService = new Service.Fan(this.name);
     this.humidityService = new Service.HumiditySensor(this.name);
 
     this.coolingThreshold=0;
 
-	//
-	this.zoneModeMap = new Map();
-	this.zoneModeMap.set(Characteristic.TargetHeatingCoolingState.OFF, "OFF");
-	this.zoneModeMap.set(Characteristic.TargetHeatingCoolingState.HEAT, "HEAT");
-	this.zoneModeMap.set(Characteristic.TargetHeatingCoolingState.COOL, "COOL");
-	this.zoneModeMap.set(Characteristic.TargetHeatingCoolingState.AUTO, "AUTO");
+    //
+    this.zoneModeMap = new Map();
+    this.zoneModeMap.set(Characteristic.TargetHeatingCoolingState.OFF, "OFF");
+    this.zoneModeMap.set(Characteristic.TargetHeatingCoolingState.HEAT, "HEAT");
+    this.zoneModeMap.set(Characteristic.TargetHeatingCoolingState.COOL, "COOL");
+    this.zoneModeMap.set(Characteristic.TargetHeatingCoolingState.AUTO, "AUTO");
 
     //
     this.scaleMap = new Map();
@@ -172,7 +173,7 @@ NexiaThermostat.prototype = {
     },
     setTargetHeatingCoolingState: function(value, callback) {
 
-		this.log("setTargetHeatingCoolingState : %s",value);
+        this.log("setTargetHeatingCoolingState : %s",value);
 
         request.get({
             url: this.apiroute + "houses/" + this.houseId,
@@ -188,9 +189,9 @@ NexiaThermostat.prototype = {
                 var data = JSON.parse(body);
 
                 var rawThermostatMode = data.result._links.child[0].data.items[this.thermostatIndex].zones[0].features.find((e) => e.name == "thermostat_mode");
-				var zoneModeUrl = rawThermostatMode.actions.update_thermostat_mode.href;
+                var zoneModeUrl = rawThermostatMode.actions.update_thermostat_mode.href;
 
-				var newRawValue=this.zoneModeMap.get(value);
+                var newRawValue=this.zoneModeMap.get(value);
 
                 request.post({
                     url:zoneModeUrl,
@@ -433,8 +434,8 @@ NexiaThermostat.prototype = {
                     c = this.ftoc(c);
                 }
 
-				this.log("Cooling Threshold Temperature : %s", c);
-				
+                this.log("Cooling Threshold Temperature : %s", c);
+                
                 // callback(null, c);
                 callback(null, c);
                 this.service.updateCharacteristic(Characteristic.CoolingThresholdTemperature, c);
@@ -529,6 +530,20 @@ NexiaThermostat.prototype = {
             callback(null);
         }        
     },
+    getFanStatus: async function(callback) {
+        console.log("call getFanStatus");
+        
+        const data=await this.getDefaultInfo();
+
+        console.log(data);
+
+        if(data!==false) {
+            callback(null);
+        } else {
+            callback(null);
+        }
+
+    },
     getStateHumidity: async function(callback) {
         const data=await this.getDefaultInfo();
 
@@ -570,7 +585,7 @@ NexiaThermostat.prototype = {
 
     getServices: function() {
 
-		let services=[];
+        let services=[];
 
         // you can OPTIONALLY create an information service if you wish to override
         // the default values for things like serial number, model, etc.
@@ -623,6 +638,11 @@ NexiaThermostat.prototype = {
         this.service
             .getCharacteristic(Characteristic.Name)
             .on('get', this.getName.bind(this));
+
+        // fan
+        this.fanService
+            .getCharacteristic(Characteristic.On)
+            .on('get', this.getFanStatus.bind(this));
 
 
         // huminity
