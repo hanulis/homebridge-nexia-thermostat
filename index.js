@@ -550,10 +550,10 @@ NexiaThermostat.prototype = {
 
         const data=await this.getDefaultInfo();
 
-        const rawThermostatMode = data.zones[0].features.find((e) => e.name == "thermostat_mode");
-        const zoneModeUrl = rawThermostatMode.actions.update_thermostat_mode.href;
+        const rawFanMode = data.settings.find((e) => e.type == "fan_mode");
+        // const zoneModeUrl = rawThermostatMode.actions.update_thermostat_mode.href;
 
-        const setFanUrl=zoneModeUrl.replace('zone_mode', 'fan_mode').replace('_zones', '_thermostats');
+        const setFanUrl=rawFanMode._links.self.href;
 
         this.log("set fan status : "+value);
         this.log("set fan url : %s", setFanUrl);
