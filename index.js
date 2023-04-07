@@ -532,7 +532,7 @@ NexiaThermostat.prototype = {
     },
     getFanStatus: async function(callback) {
         console.log("call getFanStatus");
-        
+
         const data=await this.getDefaultInfo();
 
         console.log(data);
@@ -658,6 +658,7 @@ NexiaThermostat.prototype = {
 
         services.push(informationService);
         services.push(this.service);
+        services.push(this.fanService);
         services.push(this.humidityService);
 
         return services;
