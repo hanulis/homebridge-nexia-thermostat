@@ -7,3 +7,6 @@ Forked from : [crizzwald/homebridge-nexia-thermostat](https://github.com/crizzwa
 
 It actually works.
 
+## How to install
+
+git+https://github.com/hanulis/homebridge-nexia-thermostat.git
