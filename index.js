@@ -28,6 +28,8 @@ function NexiaThermostat(log, config, api) {
 
     this.coolingThreshold=0;
 
+    this.currentMode='0';
+
     //
     this.zoneModeMap = new Map();
     this.zoneModeMap.set(Characteristic.TargetHeatingCoolingState.OFF, "OFF");
@@ -175,6 +177,8 @@ NexiaThermostat.prototype = {
 
         this.log("setTargetHeatingCoolingState : %s",value);
 
+        this.currentMode=value;
+
         request.get({
             url: this.apiroute + "houses/" + this.houseId,
             headers: {
@@ -206,12 +210,17 @@ NexiaThermostat.prototype = {
                     this.log(body2);
                     if(body2 && body2.success===true) {
                         if(body2.result.current_zone_mode==='COOL') {
+                            this.currentMode='2';
                             this.service.updateCharacteristic(Characteristic.TargetTemperature,this.ftoc(body2.result.cooling_setpoint));
                         } else if(body2.result.current_zone_mode==='HEAT') {
+                            this.currentMode='1';
                             this.service.updateCharacteristic(Characteristic.TargetTemperature,this.ftoc(body2.result.heating_setpoint));
                         } else if(body2.result.current_zone_mode==='AUTO') {
+                            this.currentMode='3';
                             this.service.updateCharacteristic(Characteristic.CoolingThresholdTemperature,this.ftoc(body2.result.cooling_setpoint));
                             this.service.updateCharacteristic(Characteristic.HeatingThresholdTemperature,this.ftoc(body2.result.heating_setpoint));
+                        } else {
+                            this.currentMode='0';
                         }
                     }
 
@@ -240,9 +249,15 @@ NexiaThermostat.prototype = {
                 c = this.ftoc(c);
             }
 
-            callback(null, c);
+            if(callback) {
+                callback(null, c);
+            }
+
+            return c;
         } else {
-            callback(null);
+            if(callback) {
+                callback(null);
+            }
         }
     },
     ctof: function(c) {
@@ -273,12 +288,20 @@ NexiaThermostat.prototype = {
 
             if(mappedMode===Characteristic.CurrentHeatingCoolingState.HEAT) {
                 tem=data.zones[0].heating_setpoint;
-            } else {
-                tem=data.zones[0].cooling_setpoint;
-            }
 
-            if(convertedScale === Characteristic.TemperatureDisplayUnits.FAHRENHEIT) {
-                tem = this.ftoc(tem);
+                if(convertedScale === Characteristic.TemperatureDisplayUnits.FAHRENHEIT) {
+                    tem = this.ftoc(tem);
+                }
+    
+            } else if(mappedMode===Characteristic.CurrentHeatingCoolingState.COOL) {
+                tem=data.zones[0].cooling_setpoint;
+
+                if(convertedScale === Characteristic.TemperatureDisplayUnits.FAHRENHEIT) {
+                    tem = this.ftoc(tem);
+                }
+    
+            } else {
+                tem=this.getCurrentTemperature();
             }
 
             this.log("Target Temperature : %s", tem);
@@ -366,8 +389,9 @@ NexiaThermostat.prototype = {
 
             const rawMode=data.zones[0].current_zone_mode;
 
-            if(rawMode==='AUTO') {
-                this.log("Ignore setTargetTemperature - AUTO");
+            // if(rawMode==='AUTO' || rawMode==='OFF') {
+            if(this.currentMode == Characteristic.CurrentHeatingCoolingState.AUTO || this.currentMode == Characteristic.CurrentHeatingCoolingState.OFF) {
+                this.log("Ignore setTargetTemperature - AUTO/OFF");
                 callback(null);
             } else {
 
@@ -375,8 +399,14 @@ NexiaThermostat.prototype = {
 
                 let payload={};
 
-                const mappedMode=this.getMappedMode(data);
-                if(mappedMode === Characteristic.CurrentHeatingCoolingState.HEAT) {
+                // const mappedMode=this.getMappedMode(data);
+                // if(mappedMode === Characteristic.CurrentHeatingCoolingState.HEAT) {
+                //     payload=this.makePointPayload(data, 'heat', value);
+                // } else {
+                //     payload=this.makePointPayload(data, 'cool', value);
+                // }
+
+                if(this.currentMode == Characteristic.CurrentHeatingCoolingState.HEAT) {
                     payload=this.makePointPayload(data, 'heat', value);
                 } else {
                     payload=this.makePointPayload(data, 'cool', value);
@@ -499,7 +529,7 @@ NexiaThermostat.prototype = {
 
             const rawMode=data.zones[0].current_zone_mode;
 
-            if(rawMode==='AUTO') {
+            if(this.currentMode==Characteristic.CurrentHeatingCoolingState.AUTO) {
 
                 const payload=this.makePointPayload(data, 'heat', value);  
                 
