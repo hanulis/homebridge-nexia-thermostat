@@ -197,6 +197,9 @@ NexiaThermostat.prototype = {
 
                 var newRawValue=this.zoneModeMap.get(value);
 
+                this.log("=== New Raw Value");
+                this.log(newRawValue);
+
                 request.post({
                     url:zoneModeUrl,
                     headers: {
@@ -207,7 +210,10 @@ NexiaThermostat.prototype = {
                     json:{value:newRawValue}
                 }, function(err2, res2, body2) {
 
+                    this.log("body2 log");
                     this.log(body2);
+                    this.log("body2 current zone mode : %s", body2.result.current_zone_mode);
+
                     if(body2 && body2.success===true) {
                         if(body2.result.current_zone_mode==='COOL') {
                             this.currentMode='2';
@@ -304,9 +310,13 @@ NexiaThermostat.prototype = {
                 tem=this.getCurrentTemperature();
             }
 
-            this.log("Target Temperature : %s", tem);
+            if(tem<10) {
+                callback(null);
+            } else {
+                this.log("Target Temperature : %s", tem);
 
-            callback(null, tem);
+                callback(null, tem);
+            }
         } else {
             callback(null);
         }
@@ -372,7 +382,7 @@ NexiaThermostat.prototype = {
 
         payload[type]=tem;
 
-        this.log("!!! makePointPayload");
+        this.log("!!! makePointPayload : "+type+","+value+","+tem);
         this.log(payload);
 
         return payload;
@@ -395,7 +405,7 @@ NexiaThermostat.prototype = {
                 callback(null);
             } else {
 
-                this.log("current mode : %s", rawMode);
+                this.log("current mode : %s (raw), %s (this.currentMode)", rawMode, this.currentMode);
 
                 let payload={};
 
