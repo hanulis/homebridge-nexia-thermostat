@@ -309,7 +309,7 @@ NexiaThermostat.prototype = {
             } else if(mappedMode===Characteristic.CurrentHeatingCoolingState.AUTO) {
                 tem=await this.getCurrentTemperature();
             } else {
-                callback(null);
+                callback(null,20);
                 return;
             }
 
