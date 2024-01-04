@@ -139,6 +139,8 @@ NexiaThermostat.prototype = {
 
             this.log("getTargetHeatingCoolingState: %s, %s", characteristic, data.zones[0].current_zone_mode);
 
+            this.currentMode=characteristic;
+            
             callback(null, characteristic);            
         } else {
             callback(null);
@@ -404,7 +406,7 @@ NexiaThermostat.prototype = {
 
             // if(rawMode==='AUTO' || rawMode==='OFF') {
             if(this.currentMode == Characteristic.CurrentHeatingCoolingState.AUTO || this.currentMode == Characteristic.CurrentHeatingCoolingState.OFF) {
-                this.log("Ignore setTargetTemperature - AUTO/OFF");
+                this.log("Ignore setTargetTemperature - AUTO/OFF : currentMode = %s", this.currentMode);
                 callback(null);
             } else {
 
